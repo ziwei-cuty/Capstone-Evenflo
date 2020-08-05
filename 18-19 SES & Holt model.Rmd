@@ -1,0 +1,236 @@
+## STEP 1 Preoparation
+```{r}
+# load packages
+library(ggplot2);library(ggthemes);library(gridExtra);library(dygraphs) # For plots 
+library(quantmod);library(xts);library(zoo) # For converting data into xts class objects
+library(fpp); library(fpp2) # Datasets from Forecasting text by Rob Hyndman
+library(tseries) # for a statistical test
+library(dplyr) # Data wrangling
+library(caret) # Model Training
+library(lubridate)
+```
+
+```{r}
+# Forecasting Tools
+library(forecast) # Set of forecasting functions, including auto.arima
+```
+
+```{r}
+# Model Evaluation
+# using the accuracy function in forecast package to provide model evaluation metrics, including ME, RMSE etc
+```
+
+## STEP 2 read the dataset & exploration
+```{r}
+# 2019 order dataset
+setwd('/Users/czw/Desktop')
+order = read.csv("order19.csv") 
+# pre-filtered dataset of items having price over 50
+# transform the data type for order - 2019
+order$Order.Qty=as.numeric(order$Order.Qty)
+order$Order.Amount = as.numeric(order$Order.Amount)
+order$Transaction.Date=as.Date(order$Transaction.Date, format='%m/%d/%Y')
+order$Transaction.month=month(as.POSIXlt(order$Transaction.Date, format="%m/%d/%Y"))
+order$Week.End.Date=as.Date(order$Week.End.Date, format='%m/%d/%Y')
+order$Sub_Category_Family = as.factor(order$Sub_Category_Family)
+# add a new column for unit price
+order$unit_price = order$Order.Amount/order$Order.Qty 
+# filter the dataset that only captures the items with unit price>$50
+order = order %>%
+    filter(order$unit_price>50)
+head(order)
+table(order$Sub_Category_Family)
+```
+```{r}
+# sort the frequency of sub_category_family
+# sort(table(order$Sub_Category_Family),decreasing=T)
+```
+
+
+```{r}
+# 2018 order dataset
+setwd('/Users/czw/Desktop')
+order2=read.csv("order18.csv") 
+# transform the data type for order - 2018
+order2$Order.Qty=as.numeric(order2$Order.Qty)
+order2$Order.Amount=as.numeric(order2$Order.Amount)
+order2$Transaction.Date=as.Date(order2$Transaction.Date, format='%d-%B-%y')
+order2$Transaction.month=month(as.POSIXlt(order2$Transaction.Date, format="%d-%B-%y"))
+order2$Week.End.Date..EF.=as.Date(order2$Week.End.Date..EF., format='%d-%B-%y')
+order2$Sub.Category = as.factor(order2$Sub.Category)
+# add a new column for unit price
+order2$unit_price = order2$Order.Amount/order2$Order.Qty
+# filter the dataset that only captures the items with unit price>$50
+order2 = order2 %>%
+    filter(order2$unit_price>50)
+head(order2)
+```
+```{r}
+# sort the frequency of sub_category_family
+# sort(table(order2$Sub.Category),decreasing=T)
+```
+
+## STEP 3 Visualize the Historical Sales
+```{r}
+# Group by the Sub_Category_Family & transaction date, get the sum of order quantity 2019
+# Editing whitespace out of levels
+order$Sub_Category_Family = factor(trimws(order$Sub_Category_Family))
+# subcategory 1: Sonus
+order = order %>%
+    filter(order$Sub_Category_Family == 'Sonus')
+head(order)
+```
+```{r}
+# subcategory 1: Sonus
+order2$Sub.Category= factor(trimws(order2$Sub.Category))
+order2 = order2 %>%
+    filter(order2$Sub.Category == 'Sonus')
+head(order2)
+```
+
+
+```{r}
+days = order %>%
+    group_by(Transaction.Date) %>%
+    summarise(order_qty=sum(Order.Qty)) %>%
+    mutate(transaction_month = month(Transaction.Date)) %>%
+    mutate(transaction_year = year(Transaction.Date))
+# convert numberic month to the abbreviation of month
+days$transaction_month = month.abb[days$transaction_month]
+head(days)
+```
+
+```{r}
+# Group by the Sub_Category_Family & transaction date, get the sum of order quantity 2018
+days2 = order2 %>%
+    group_by(Transaction.Date) %>%
+    summarise(order_qty=sum(Order.Qty)) %>%
+    mutate(transaction_month = month(Transaction.Date)) %>%
+    mutate(transaction_year = year(Transaction.Date))
+# convert numberic month to the abbreviation of month
+days2$transaction_month = month.abb[days2$transaction_month]
+head(days2)
+```
+
+```{r}
+# merge the 2018-2019 days table
+library(dplyr)
+merge = rbind(days2,days)
+head(merge)
+```
+
+# General Trend of Historical Sales in 2018-2019
+```{r}
+ts1 = xts(x= merge$order_qty, order.by = as.Date(merge$Transaction.Date, format='%Y/%m/%d'))
+dygraph(ts1,main="Historical Sales in 2018-2019 - Sonus",xlab="Date",ylab="Daily order quantity") 
+```
+## STEP 3: Group by month and generate the ts format
+```{r}
+# group by month
+months = merge%>%
+    group_by(month=floor_date(Transaction.Date, "month")) %>%
+   summarize(order.sum=sum(order_qty))
+months
+# transform to ts
+sales_ts = ts(months$order.sum, freq = 12, start = c(2018, 1), end = c(2019, 12))
+print(sales_ts)
+
+```
+
+```{r}
+# split data into train and test (weekly)
+train=window(sales_ts,end=c(2019,3))
+test=window(sales_ts,start=c(2019,4))
+length(sales_ts) #24
+length(train) #15
+length(test) #9
+```
+## STEP 5 Simple Exponential Smoothing Model & Holt Damped Model
+```{r}
+# Simple Exponential Smoothing Model on test
+library(forecast)
+ses_model = ses(train, h = 9, alpha=0.1, initial="simple")
+ses_model
+# Holt's methods with damping on test
+holt_damp_model = holt(train, h = 9, damped = T)
+holt_damp_model
+```
+
+
+```{r}
+# Try to capture the seasonality, but not sufficient observations
+# Holt - winter seasonal method
+hw_additive = hw(train, h = 9, seasonal = 'additive', damped = T)
+hw_additive
+# Holt - winter Multiplicative
+hw_multiplicative =  hw(train, h=9, seasonal = 'multiplicative', damped = T)
+hw_multiplicative
+```
+
+```{r}
+# Visualize forecasts (train & test)
+autoplot(train)+
+    autolayer(ses_model,series  = 'Simple Exponential Smoothing',PI = F, size = 1.1) +
+    autolayer(holt_damp_model, series = 'Holt Damped Model', PI = F, size = 1.1)+
+    autolayer(hw_additive, series = 'Holt Winter Additive Model', PI =F, size = 1.1)+
+    autolayer(hw_multiplicative, series = 'Holt Winter Multiplicative Model', PI = F, size=1.1)+
+labs(title="SES Model & Holt_damped Forecast Visualization")+
+    autolayer(test)
+```
+
+## STEP 6 obtain the predicted value
+```{r}
+# obtain predicted value
+ses_forecast = forecast(ses_model,h=9)
+holt_forecast = forecast(holt_damp_model, h = 9)
+hw_additive_forecast = forecast(hw_additive,h=9)
+hw_multiplicative_forecast = forecast(hw_multiplicative,h=9)
+```
+
+
+```{r}
+ses_forecast
+```
+```{r}
+holt_forecast
+```
+```{r}
+hw_additive_forecast
+```
+```{r}
+hw_multiplicative_forecast
+```
+
+
+## STEP 7 plot prediction against known values
+```{r}
+autoplot(sales_ts, size=1, color='#8abbd0',xlab = 'Week',ylab='Order Quantity')+
+    autolayer(ses_forecast, size=1, color='#9ae5de',series='SES model',PI=F)+
+    autolayer(holt_forecast, size = 1, color = 'red', series = 'holt damped model', PI=F)+
+    autolayer(hw_additive_forecast,size=1,color = 'blue', series = 'hw_additive model', PI=F)+
+    autolayer(hw_multiplicative_forecast, size=1, color = 'yellow', series = 'hw_multiplicative model', PI=F)+
+    labs(title="Exponential Smoothing Forecast Models")+
+    theme(plot.title = element_text(hjust = 0.5))
+```
+## STEP 8 Evaluate the Model using MSE and RMSE
+```{r}
+# ses model
+ses_accuracy = accuracy(ses_model,x=sales_ts) # accuracy on train and test sets
+ses_accuracy
+```
+```{r}
+# holt damped model
+holt_damped_accuracy = accuracy(holt_damp_model, x= sales_ts)
+holt_damped_accuracy
+```
+```{r}
+# hw_additive
+hw_additive_accuracy = accuracy(hw_additive, x = sales_ts)
+hw_additive_accuracy
+```
+```{r}
+# hw_multiplicative
+hw_multiplicative_accuracy = accuracy(hw_multiplicative, x = sales_ts)
+hw_multiplicative_accuracy
+```
+

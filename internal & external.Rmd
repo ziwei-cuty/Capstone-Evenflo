@@ -1,0 +1,161 @@
+```{r}
+setwd('/Users/czw/Desktop')
+internal18 = read.csv('internal18.csv')
+internal19 = read.csv('internal19.csv')
+external19 = read.csv('external19.csv')
+```
+
+```{r}
+library(stringr)
+internal18$DESCRIPTION= factor(trimws(internal18$DESCRIPTION))
+internal18$DESCRIPTION = as.factor(internal18$DESCRIPTION)
+internal18$JAN = as.numeric(internal18$JAN)
+internal18$FEB = as.numeric(internal18$FEB)
+internal18$MAR = as.numeric(internal18$MAR)
+internal18$APR = as.numeric(internal18$APR)
+internal18$MAY = as.numeric(internal18$MAY)
+internal18$JUN = as.numeric(internal18$JUN)
+internal18$JUL = as.numeric(internal18$JUL)
+internal18$AUG = as.numeric(internal18$AUG)
+internal18$SEP = as.numeric(internal18$SEP)
+internal18$OCT = as.numeric(internal18$OCT)
+internal18$NOV = as.numeric(internal18$NOV)
+internal18$DEC = as.numeric(internal18$DEC)
+
+# Subcategory 1 - Sonus
+internal18 = internal18 %>%
+  filter(str_detect(DESCRIPTION,'SURERIDE'))
+head(internal18$DESCRIPTION)
+```
+```{r}
+library(stringr)
+internal19$DESCRIPTION= factor(trimws(internal19$DESCRIPTION))
+internal19$DESCRIPTION = as.factor(internal19$DESCRIPTION)
+internal19$JAN = as.numeric(internal19$JAN)
+internal19$FEB = as.numeric(internal19$FEB)
+internal19$MAR = as.numeric(internal19$MAR)
+internal19$APR = as.numeric(internal19$APR)
+internal19$MAY = as.numeric(internal19$MAY)
+internal19$JUN = as.numeric(internal19$JUN)
+internal19$JUL = as.numeric(internal19$JUL)
+internal19$AUG = as.numeric(internal19$AUG)
+internal19$SEP = as.numeric(internal19$SEP)
+internal19$OCT = as.numeric(internal19$OCT)
+internal19$NOV = as.numeric(internal19$NOV)
+internal19$DEC = as.numeric(internal19$DEC)
+# Subcategory 1 - Sonus
+internal19 = internal19 %>%
+  filter(str_detect(DESCRIPTION,'SURERIDE'))
+head(internal19$DESCRIPTION)
+```
+
+
+```{r}
+# generate the 2018 monthly order quantity for specific sub category selected
+JAN18 = sum(internal18$JAN)
+FEB18 = sum(internal18$FEB)
+MAR18 = sum(internal18$MAR)
+APR18 = sum(internal18$APR)
+MAY18 = sum(internal18$MAY)
+JUN18 = sum(internal18$JUN)
+JUL18 = sum(internal18$JUL)
+AUG18 = sum(internal18$AUG)
+SEP18 = sum(internal18$SEP)
+OCT18 = sum(internal18$OCT)
+NOV18 = sum(internal18$NOV)
+DEC18 = sum(internal18$DEC)
+sum18 = c(JAN18,FEB18,MAR18,APR18,MAY18,JUN18,JUL18,AUG18,SEP18,OCT18,NOV18,DEC18)
+sum18
+```
+
+
+```{r}
+# generate the 2018 monthly order quantity for specific sub category selected
+JAN19 = sum(internal19$JAN)
+FEB19 = sum(internal19$FEB)
+MAR19 = sum(internal19$MAR)
+APR19 = sum(internal19$APR)
+MAY19 = sum(internal19$MAY)
+JUN19 = sum(internal19$JUN)
+JUL19 = sum(internal19$JUL)
+AUG19 = sum(internal19$AUG)
+SEP19 = sum(internal19$SEP)
+OCT19 = sum(internal19$OCT)
+NOV19 = sum(internal19$NOV)
+DEC19 = sum(internal19$DEC)
+sum19 = c(JAN19,FEB19,MAR19,APR19,MAY19,JUN19,JUL19,AUG19,SEP19,OCT19,NOV19,DEC19)
+sum19
+```
+
+```{r}
+external19$Product.Title= factor(trimws(external19$Product.Title))
+external19$Product.Title = as.factor(external19$Product.Title)
+```
+
+
+```{r}
+external19 = external19 %>%
+  filter(str_detect(Product.Title,'SafeMax'))
+```
+
+
+```{r}
+external19$Week..1...Mean.Forecast = as.numeric(external19$Week..1...Mean.Forecast)
+external19$Week..2...Mean.Forecast = as.numeric(external19$Week..2...Mean.Forecast)
+external19$Week..3...Mean.Forecast = as.numeric(external19$Week..3...Mean.Forecast)
+external19$Week..4...Mean.Forecast = as.numeric(external19$Week..4...Mean.Forecast)
+external19$Week..5...Mean.Forecast = as.numeric(external19$Week..5...Mean.Forecast)
+external19$Week..6...Mean.Forecast = as.numeric(external19$Week..6...Mean.Forecast)
+external19$Week..7...Mean.Forecast = as.numeric(external19$Week..7...Mean.Forecast)
+external19$Week..8...Mean.Forecast = as.numeric(external19$Week..8...Mean.Forecast)
+external19$Week..9...Mean.Forecast = as.numeric(external19$Week..9...Mean.Forecast)
+external19$Week.10...Mean.Forecast = as.numeric(external19$Week.10...Mean.Forecast)
+external19$Week.11...Mean.Forecast = as.numeric(external19$Week.11...Mean.Forecast)
+external19$Week.12...Mean.Forecast = as.numeric(external19$Week.12...Mean.Forecast)
+external19$Week.13...Mean.Forecast = as.numeric(external19$Week.13...Mean.Forecast)
+external19$Week.14...Mean.Forecast = as.numeric(external19$Week.14...Mean.Forecast)
+external19$Week.15...Mean.Forecast = as.numeric(external19$Week.15...Mean.Forecast)
+external19$Week.16...Mean.Forecast = as.numeric(external19$Week.16...Mean.Forecast)
+external19$Week.17...Mean.Forecast = as.numeric(external19$Week.17...Mean.Forecast)
+external19$Week.18...Mean.Forecast = as.numeric(external19$Week.18...Mean.Forecast)
+external19$Week.19...Mean.Forecast = as.numeric(external19$Week.19...Mean.Forecast)
+external19$Week.20...Mean.Forecast = as.numeric(external19$Week.20...Mean.Forecast)
+external19$Week.21...Mean.Forecast = as.numeric(external19$Week.21...Mean.Forecast)
+external19$Week.22...Mean.Forecast = as.numeric(external19$Week.22...Mean.Forecast)
+external19$Week.23...Mean.Forecast = as.numeric(external19$Week.23...Mean.Forecast)
+external19$Week.24...Mean.Forecast = as.numeric(external19$Week.24...Mean.Forecast)
+external19$Week.25...Mean.Forecast = as.numeric(external19$Week.25...Mean.Forecast)
+external19$Week.26...Mean.Forecast = as.numeric(external19$Week.26...Mean.Forecast)
+```
+
+```{r}
+JAN20 = sum(external19$Week..1...Mean.Forecast+external19$Week..2...Mean.Forecast+external19$Week..3...Mean.Forecast+external19$Week..4...Mean.Forecast)
+JAN20
+```
+```{r}
+FEB20 = sum(external19$Week..5...Mean.Forecast+external19$Week..6...Mean.Forecast+external19$Week..7...Mean.Forecast+external19$Week..8...Mean.Forecast)
+FEB20
+```
+```{r}
+MAR20 = sum(external19$Week..9...Mean.Forecast+external19$Week.10...Mean.Forecast+external19$Week.11...Mean.Forecast+external19$Week.12...Mean.Forecast)
+MAR20
+```
+```{r}
+APR20 = sum(external19$Week.13...Mean.Forecast+external19$Week.14...Mean.Forecast+external19$Week.15...Mean.Forecast+external19$Week.16...Mean.Forecast)
+APR20
+```
+```{r}
+MAY20 = sum(external19$Week.17...Mean.Forecast+external19$Week.18...Mean.Forecast+external19$Week.19...Mean.Forecast+external19$Week.20...Mean.Forecast)
+MAY20
+```
+```{r}
+JUN20 = sum(external19$Week.21...Mean.Forecast+external19$Week.22...Mean.Forecast+external19$Week.23...Mean.Forecast+external19$Week.24...Mean.Forecast)
+JUN20
+```
+```{r}
+JUL20 = sum(external19$Week.25...Mean.Forecast+external19$Week.26...Mean.Forecast)
+JUL20
+```
+
+
+
